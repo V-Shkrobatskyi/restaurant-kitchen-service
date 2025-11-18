@@ -30,6 +30,8 @@
           {% include "includes/search.html" %}
         {% endblock %}
 
+        <div id="dish-type-form-container" class="m-3 mt-0 mb-3"></div>
+
         <div class="table-responsive m-3 mt-0 mb-0 text-center">
           {% if dish_type_list %}
             <table class="table align-items-center table-flush mb-0">
@@ -51,18 +53,30 @@
                     <td>
                       {{ dish_type.name }}
                     </td>
+
                     <td>
-                      <a style="color: blue"
-                         href="{% url 'kitchen:dish-type-update' pk=dish_type.id %}">
+                      <a
+                        style="color: blue"
+                        href="{% url 'kitchen:dish-type-update' pk=dish_type.id %}"
+                        hx-get="{% url 'kitchen:dish-type-update' pk=dish_type.id %}"
+                        hx-target="#dish-type-form-container"
+                        hx-swap="innerHTML"
+                      >
                         Update
                       </a>
                     </td>
                     <td>
-                      <a style="color: red"
-                         href="{% url 'kitchen:dish-type-delete' pk=dish_type.id %}">
+                      <a
+                        style="color: red"
+                        href="{% url 'kitchen:dish-type-delete' pk=dish_type.id %}"
+                        hx-get="{% url 'kitchen:dish-type-delete' pk=dish_type.id %}"
+                        hx-target="#dish-type-form-container"
+                        hx-swap="innerHTML"
+                      >
                         Delete
                       </a>
                     </td>
+
                   </tr>
                 {% endfor %}
               </tbody>
