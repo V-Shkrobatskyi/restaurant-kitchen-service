@@ -11,6 +11,9 @@
         <form
           method="post"
           action="{% url 'kitchen:dish-type-update' pk=object.pk %}"
+          hx-post="{% url 'kitchen:dish-type-update' pk=object.pk %}"
+          hx-target="#dish-type-row-{{ object.pk }}"
+          hx-swap="outerHTML"
           novalidate
         >
           <div class="card-body pt-0">

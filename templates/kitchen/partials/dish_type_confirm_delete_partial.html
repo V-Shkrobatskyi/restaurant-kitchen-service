@@ -17,7 +17,9 @@
           <form
             method="post"
             action="{% url 'kitchen:dish-type-delete' pk=object.pk %}"
-            novalidate
+            hx-post="{% url 'kitchen:dish-type-delete' pk=object.pk %}"
+            hx-target="#dish-type-row-{{ object.pk }}"
+            hx-swap="outerHTML"
           >
             {% csrf_token %}
 
@@ -32,7 +34,6 @@
             >
               Cancel
             </button>
-
           </form>
         </div>
 
