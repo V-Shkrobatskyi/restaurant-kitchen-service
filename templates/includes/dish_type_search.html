@@ -12,10 +12,10 @@
   <div class="input-group-text p-0" style="border:0px">
     {{ search_form|crispy }}
 
-    {# Кнопка пошуку #}
+    {# Search button #}
     <input class="btn btn-secondary" type="submit" value="🔎">
 
-    {# Кнопка скидання пошуку #}
+    {# Cancel search button #}
     <button
       type="button"
       class="btn btn-outline-secondary ml-2"
@@ -23,8 +23,13 @@
       hx-target="#dish-type-table-container"
       hx-swap="outerHTML"
       hx-select="#dish-type-table-container"
+      onclick="
+        const input = this.closest('form').querySelector('input[type=text]');
+        if (input) input.value = '';
+      "
     >
       ✖
     </button>
+
   </div>
 </form>
