@@ -21,8 +21,16 @@
       <div class="card border-radius-xl overflow-hidden shadow-lg">
         <div class="card-header border-0">
           <h3 class="mb-0">Dish type List
-            <a href="{% url 'kitchen:dish-type-create' %}" style="float: right"
-               class="btn bg-gradient-success w-auto me-2">Create</a>
+            <a
+              style="float: right"
+              class="btn bg-gradient-success w-auto me-2"
+              href="{% url 'kitchen:dish-type-create' %}"
+              hx-get="{% url 'kitchen:dish-type-create' %}"
+              hx-target="#dish-type-form-container"
+              hx-swap="innerHTML"
+            >
+              Create
+            </a>
           </h3>
         </div>
 
@@ -44,7 +52,7 @@
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody id="dish-type-table-body">
                 {% for dish_type in dish_type_list %}
                   {% include "kitchen/partials/dish_type_row.html" with dish_type=dish_type %}
                 {% endfor %}

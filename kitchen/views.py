@@ -55,6 +55,27 @@ class DishTypeCreateView(LoginRequiredMixin, generic.CreateView):
     success_url = reverse_lazy("kitchen:dish-type-list")
     template_name = "kitchen/dish_type_form.html"
 
+    def get_template_names(self):
+        # HTMX: return only the create form partial
+        if self.request.headers.get("HX-Request") == "true":
+            return ["kitchen/partials/dish_type_form_create_partial.html"]
+        # Normal request: full page with layout
+        return [self.template_name]
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        # HTMX: return a single new table row to append to the list
+        if self.request.headers.get("HX-Request") == "true":
+            return render(
+                self.request,
+                "kitchen/partials/dish_type_row.html",
+                {"dish_type": self.object},
+            )
+
+        # Non-HTMX: standard redirect
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class DishTypeUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = DishType
