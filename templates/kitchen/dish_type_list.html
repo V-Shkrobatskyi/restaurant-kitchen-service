@@ -21,65 +21,59 @@
       <div class="card border-radius-xl overflow-hidden shadow-lg">
         <div class="card-header border-0">
           <h3 class="mb-0">Dish type List
-            <a href="{% url 'kitchen:dish-type-create' %}" style="float: right"
-               class="btn bg-gradient-success w-auto me-2">Create</a>
+            <a
+              style="float: right"
+              class="btn bg-gradient-success w-auto me-2"
+              href="{% url 'kitchen:dish-type-create' %}"
+              hx-get="{% url 'kitchen:dish-type-create' %}"
+              hx-target="#dish-type-form-container"
+              hx-swap="innerHTML"
+            >
+              Create
+            </a>
           </h3>
         </div>
 
         {% block search %}
-          {% include "includes/search.html" %}
+          {% include "includes/dish_type_search.html" %}
         {% endblock %}
 
-        <div class="table-responsive m-3 mt-0 mb-0 text-center">
-          {% if dish_type_list %}
-            <table class="table align-items-center table-flush mb-0">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Update</th>
-                  <th scope="col">Delete</th>
-                </tr>
-              </thead>
+        <div id="dish-type-form-container" class="m-3 mt-0 mb-3"></div>
 
-              <tbody>
-                {% for dish_type in dish_type_list %}
+        <div id="dish-type-table-container">
+          <div class="table-responsive m-3 mt-0 mb-0 text-center">
+            {% if dish_type_list %}
+              <table class="table align-items-center table-flush mb-0">
+                <thead class="thead-light">
                   <tr>
-                    <td>
-                      {{ dish_type.id }}
-                    </td>
-                    <td>
-                      {{ dish_type.name }}
-                    </td>
-                    <td>
-                      <a style="color: blue"
-                         href="{% url 'kitchen:dish-type-update' pk=dish_type.id %}">
-                        Update
-                      </a>
-                    </td>
-                    <td>
-                      <a style="color: red"
-                         href="{% url 'kitchen:dish-type-delete' pk=dish_type.id %}">
-                        Delete
-                      </a>
-                    </td>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Update</th>
+                    <th scope="col">Delete</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% else %}
-            <p>There are no Dish types in Kitchen</p>
-          {% endif %}
-        </div>
-        <div class="card-footer py-4">
-          <nav aria-label="...">
+                </thead>
+
+                <tbody id="dish-type-table-body">
+                  {% for dish_type in dish_type_list %}
+                    {% include "kitchen/partials/dish_type_row.html" with dish_type=dish_type %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p>There are no Dish types in Kitchen</p>
+            {% endif %}
+          </div>
+          <div class="card-footer py-4">
+            <nav aria-label="...">
 
               {% block pagination %}
-                {% include "includes/pagination.html" %}
+                {% include "includes/dish_type_pagination.html" %}
               {% endblock %}
 
-          </nav>
+            </nav>
+          </div>
         </div>
+
       </div>
     </div>
   </div>

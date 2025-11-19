@@ -1,0 +1,41 @@
+<div class="container w-50">
+  <div class="row">
+    <div class="col">
+      <div class="card border-radius-xl overflow-hidden shadow-lg">
+        <div class="card-header border-0">
+          <h3 class="mb-0">
+            Create dish type
+          </h3>
+        </div>
+
+        <div class="card-body pt-0">
+          <form
+            method="post"
+            action="{% url 'kitchen:dish-type-create' %}"
+            hx-post="{% url 'kitchen:dish-type-create' %}"
+            hx-target="#dish-type-table-body"
+            hx-swap="beforeend"
+            novalidate
+          >
+            {% csrf_token %}
+            {{ form }}
+
+            <button type="submit" class="btn bg-gradient-success btn-lg mt-2">
+              Create
+            </button>
+
+            <button
+              type="button"
+              class="btn bg-gradient-secondary btn-lg mt-2 ms-2"
+              onclick="htmx.find('#dish-type-form-container').innerHTML = '';"
+            >
+              Cancel
+            </button>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

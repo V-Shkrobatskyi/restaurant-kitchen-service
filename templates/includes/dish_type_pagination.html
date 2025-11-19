@@ -1,0 +1,63 @@
+{% if is_paginated %}
+<ul class="justify-content-end mb-0 pagination pagination-primary">
+
+  {# First page («) #}
+  <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+    {% if page_obj.has_previous %}
+      <a
+        class="page-link"
+        href="?page=1{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+        hx-get="?page=1{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+        hx-target="#dish-type-table-container"
+        hx-swap="outerHTML"
+        hx-select="#dish-type-table-container"
+      >
+        &laquo;
+      </a>
+    {% else %}
+      <span class="page-link">&laquo;</span>
+    {% endif %}
+  </li>
+
+  {# Central page with page numbers #}
+  {% for n in page_obj.paginator.page_range %}
+    {% if page_obj.number == n %}
+      <li class="page-item active">
+        <span class="page-link">{{ n }}</span>
+      </li>
+    {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' %}
+      <li class="page-item">
+        <a
+          class="page-link"
+          href="?page={{ n }}{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+          hx-get="?page={{ n }}{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+          hx-target="#dish-type-table-container"
+          hx-swap="outerHTML"
+          hx-select="#dish-type-table-container"
+        >
+          {{ n }}
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  {# Last page (») #}
+  <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+    {% if page_obj.has_next %}
+      <a
+        class="page-link"
+        href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+        hx-get="?page={{ page_obj.paginator.num_pages }}{% if request.GET.name %}&name={{ request.GET.name|urlencode }}{% endif %}"
+        hx-target="#dish-type-table-container"
+        hx-swap="outerHTML"
+        hx-select="#dish-type-table-container"
+      >
+        &raquo;
+      </a>
+    {% else %}
+      <span class="page-link">&raquo;</span>
+    {% endif %}
+  </li>
+
+</ul>
+{% endif %}

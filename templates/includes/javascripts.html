@@ -29,6 +29,21 @@
       countUp2.start();
     } else {
       console.error(countUp2.error);
-    };
+    }
   }
-</script>
+
+  <!-- HTMX reactivity – hide the form after a successful submit -->
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    // The element that triggered the request (click/submit)
+    const triggerEl = evt.detail && evt.detail.elt;
+
+    // We only care about forms (Update/Delete), not links (which open the forms)
+    if (triggerEl && triggerEl.tagName === 'FORM') {
+      const container = htmx.find('#dish-type-form-container');
+      if (container) {
+        container.innerHTML = '';
+      }
+    }
+  });
+
+  </script>

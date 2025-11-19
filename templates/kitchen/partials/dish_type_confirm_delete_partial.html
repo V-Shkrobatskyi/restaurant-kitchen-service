@@ -1,0 +1,43 @@
+<div class="container w-50">
+  <div class="row">
+    <div class="col">
+      <div class="card border-radius-xl overflow-hidden shadow-lg">
+        <div class="card-header border-0">
+          <h3 class="mb-0 text-danger">
+            Delete dish type
+          </h3>
+        </div>
+
+        <div class="card-body pt-0">
+          <p>
+            Are you sure you want to delete dish type:
+            <strong>{{ object.name }}</strong> (ID: {{ object.id }})?
+          </p>
+
+          <form
+            method="post"
+            action="{% url 'kitchen:dish-type-delete' pk=object.pk %}"
+            hx-post="{% url 'kitchen:dish-type-delete' pk=object.pk %}"
+            hx-target="#dish-type-row-{{ object.pk }}"
+            hx-swap="outerHTML"
+          >
+            {% csrf_token %}
+
+            <button type="submit" class="btn bg-gradient-danger btn-lg mt-2">
+              Yes, delete
+            </button>
+
+            <button
+              type="button"
+              class="btn bg-gradient-secondary btn-lg mt-2 ms-2"
+              onclick="htmx.find('#dish-type-form-container').innerHTML = '';"
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
