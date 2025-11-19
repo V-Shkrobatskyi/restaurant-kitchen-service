@@ -8,21 +8,33 @@
           </h3>
         </div>
 
-        <form
-          method="post"
-          action="{% url 'kitchen:dish-type-update' pk=object.pk %}"
-          hx-post="{% url 'kitchen:dish-type-update' pk=object.pk %}"
-          hx-target="#dish-type-row-{{ object.pk }}"
-          hx-swap="outerHTML"
-          novalidate
-        >
-          <div class="card-body pt-0">
+        <div class="card-body pt-0">
+          <form
+            method="post"
+            action="{% url 'kitchen:dish-type-update' pk=object.pk %}"
+            hx-post="{% url 'kitchen:dish-type-update' pk=object.pk %}"
+            hx-target="#dish-type-row-{{ object.pk }}"
+            hx-swap="outerHTML"
+            novalidate
+          >
+
             {% csrf_token %}
             {{ form }}
 
-            <input class="btn bg-gradient-info btn-lg mt-2" type="submit" value="Submit">
-          </div>
-        </form>
+            <button type="submit" class="btn bg-gradient-info btn-lg mt-2">
+              Submit
+            </button>
+
+            <button
+              type="button"
+              class="btn bg-gradient-secondary btn-lg mt-2 ms-2"
+              onclick="htmx.find('#dish-type-form-container').innerHTML = '';"
+            >
+              Cancel
+            </button>
+
+          </form>
+        </div>
 
       </div>
     </div>
