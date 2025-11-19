@@ -55,6 +55,27 @@ class DishTypeCreateView(LoginRequiredMixin, generic.CreateView):
     success_url = reverse_lazy("kitchen:dish-type-list")
     template_name = "kitchen/dish_type_form.html"
 
+    def get_template_names(self):
+        # HTMX: return only the create form partial
+        if self.request.headers.get("HX-Request") == "true":
+            return ["kitchen/partials/dish_type_form_create_partial.html"]
+        # Normal request: full page with layout
+        return [self.template_name]
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        # HTMX: return a single new table row to append to the list
+        if self.request.headers.get("HX-Request") == "true":
+            return render(
+                self.request,
+                "kitchen/partials/dish_type_row.html",
+                {"dish_type": self.object},
+            )
+
+        # Non-HTMX: standard redirect
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class DishTypeUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = DishType
@@ -62,11 +83,47 @@ class DishTypeUpdateView(LoginRequiredMixin, generic.UpdateView):
     success_url = reverse_lazy("kitchen:dish-type-list")
     template_name = "kitchen/dish_type_form.html"
 
+    def get_template_names(self):
+        # If this is an HTMX request – return only the partial template
+        if self.request.headers.get("HX-Request") == "true":
+            return ["kitchen/partials/dish_type_form_partial.html"]
+        # Otherwise – return the full template as usual
+        return [self.template_name]
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        if self.request.headers.get("HX-Request") == "true":
+            # Return just the updated table row
+            return render(
+                self.request,
+                "kitchen/partials/dish_type_row.html",
+                {"dish_type": self.object},
+            )
+
+        # Fallback for normal requests
+        return HttpResponseRedirect(self.get_success_url())
+
 
 class DishTypeDeleteView(LoginRequiredMixin, generic.DeleteView):
     model = DishType
     success_url = reverse_lazy("kitchen:dish-type-list")
     template_name = "kitchen/dish_type_confirm_delete.html"
+
+    def get_template_names(self):
+        if self.request.headers.get("HX-Request") == "true":
+            return ["kitchen/partials/dish_type_confirm_delete_partial.html"]
+        return [self.template_name]
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+
+        if request.headers.get("HX-Request") == "true":
+            # empty response → <tr> will be removed
+            return HttpResponse("")
+
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class CookListView(LoginRequiredMixin, generic.ListView):
