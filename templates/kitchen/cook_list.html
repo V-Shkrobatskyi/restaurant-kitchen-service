@@ -26,42 +26,45 @@
         </div>
 
         {% block search %}
-          {% include "includes/search.html" %}
+          {% include "includes/htmx_search.html" with target_id="cook-table-container" reset_url="kitchen:cook-list" %}
         {% endblock %}
 
-        <div class="table-responsive m-3 mt-0 mb-0 text-center">
-          {% if cook_list %}
-            <table class="table align-items-center table-flush mb-0">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Full Name</th>
-                  <th scope="col">Username</th>
-                  <th scope="col">Years of experience</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {% for cook in cook_list %}
+        <div id="cook-table-container">
+          <div class="table-responsive m-3 mt-0 mb-0 text-center">
+            {% if cook_list %}
+              <table class="table align-items-center table-flush mb-0">
+                <thead class="thead-light">
                   <tr>
-                    <td>
-                      <a href="{{ cook.get_absolute_url }}">{{ cook.id }}</a>
-                    </td>
-                    <td>
-                       {{ cook.first_name }} {{ cook.last_name }}
-                    </td>
-                    <td>
-                      {{ cook.username }}
-                    </td>
-                    <td>
-                      {{ cook.years_of_experience }}
-                    </td>
+                    <th scope="col">ID</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Years of experience</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          {% endif %}
+                </thead>
+
+                <tbody>
+                  {% for cook in cook_list %}
+                    <tr>
+                      <td>
+                        <a href="{{ cook.get_absolute_url }}">{{ cook.id }}</a>
+                      </td>
+                      <td>
+                         {{ cook.first_name }} {{ cook.last_name }}
+                      </td>
+                      <td>
+                        {{ cook.username }}
+                      </td>
+                      <td>
+                        {{ cook.years_of_experience }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% endif %}
+          </div>
         </div>
+
         <div class="card-footer py-4">
           <nav aria-label="...">
 
