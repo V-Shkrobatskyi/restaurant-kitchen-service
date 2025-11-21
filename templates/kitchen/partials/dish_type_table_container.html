@@ -1,0 +1,33 @@
+<div id="dish-type-table-container">
+  <div class="table-responsive m-3 mt-0 mb-0 text-center">
+    {% if dish_type_list %}
+      <table class="table align-items-center table-flush mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Update</th>
+            <th scope="col">Delete</th>
+          </tr>
+        </thead>
+
+        <tbody id="dish-type-table-body">
+          {% for dish_type in dish_type_list %}
+            {% include "kitchen/partials/dish_type_row.html" with dish_type=dish_type %}
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>There are no Dish types in Kitchen</p>
+    {% endif %}
+  </div>
+  <div class="card-footer py-4">
+    <nav aria-label="...">
+
+      {% block pagination %}
+        {% include "includes/htmx_pagination.html" with target_id="dish-type-table-container" %}
+      {% endblock %}
+
+    </nav>
+  </div>
+</div>
