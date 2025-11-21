@@ -1,0 +1,59 @@
+{% load query_transform %}
+
+{% if is_paginated %}
+<ul class="justify-content-center mb-0 pagination pagination-primary">
+
+  {# First page («) #}
+  <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+    {% if page_obj.has_previous %}
+      <a
+        class="page-link"
+        href="?{% query_transform request page=1 %}"
+        hx-get="?{% query_transform request page=1 %}"
+        hx-target="#{{ target_id }}"
+        hx-select="#{{ target_id }}"
+        hx-swap="outerHTML"
+      >&laquo;</a>
+    {% else %}
+      <span class="page-link">&laquo;</span>
+    {% endif %}
+  </li>
+
+  {# Window of pages around current (# -2 … # +2) #}
+  {% for n in page_obj.paginator.page_range %}
+    {% if page_obj.number == n %}
+      <li class="page-item active">
+        <span class="page-link">{{ n }}</span>
+      </li>
+    {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' %}
+      <li class="page-item">
+        <a
+          class="page-link"
+          href="?{% query_transform request page=n %}"
+          hx-get="?{% query_transform request page=n %}"
+          hx-target="#{{ target_id }}"
+          hx-select="#{{ target_id }}"
+          hx-swap="outerHTML"
+        >{{ n }}</a>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  {# Last page (») #}
+  <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+    {% if page_obj.has_next %}
+      <a
+        class="page-link"
+        href="?{% query_transform request page=page_obj.paginator.num_pages %}"
+        hx-get="?{% query_transform request page=page_obj.paginator.num_pages %}"
+        hx-target="#{{ target_id }}"
+        hx-select="#{{ target_id }}"
+        hx-swap="outerHTML"
+      >&raquo;</a>
+    {% else %}
+      <span class="page-link">&raquo;</span>
+    {% endif %}
+  </li>
+
+</ul>
+{% endif %}

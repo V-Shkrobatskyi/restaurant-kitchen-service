@@ -2,30 +2,29 @@
 
 <form
   method="get"
-  action=""
+  action="{% url reset_url %}"
   class="form-inline col-5 mx-4"
-  hx-get=""
-  hx-target="#dish-type-table-container"
+  hx-get="{% url reset_url %}"
+  hx-target="#{{ target_id }}"
   hx-swap="outerHTML"
-  hx-select="#dish-type-table-container"
+  hx-select="#{{ target_id }}"
 >
   <div class="input-group-text p-0" style="border:0px">
     {{ search_form|crispy }}
 
-    {# Search button #}
     <input class="btn btn-secondary" type="submit" value="🔎">
 
-    {# Cancel search button #}
     <button
       type="button"
       class="btn btn-outline-secondary ml-2"
-      hx-get="{% url 'kitchen:dish-type-list' %}"
-      hx-target="#dish-type-table-container"
+      hx-get="{% url reset_url %}"
+      hx-target="#{{ target_id }}"
       hx-swap="outerHTML"
-      hx-select="#dish-type-table-container"
+      hx-select="#{{ target_id }}"
       onclick="
-        const input = this.closest('form').querySelector('input[type=text]');
-        if (input) input.value = '';
+        const form = this.closest('form');
+        if (!form) return;
+        form.querySelectorAll('input[type=text],input[type=search]').forEach(el => el.value = '');
       "
     >
       ✖
