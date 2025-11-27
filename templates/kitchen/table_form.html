@@ -1,0 +1,61 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} {% if form.instance.pk %}Update{% else %}Create{% endif %} Table {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} {% endblock body_class %}
+
+{% block content %}
+
+{% include "includes/header.html" %}
+
+{% load static %}
+
+<section class="col-md-12 z-index-2 mt-n12">
+  <div class="container w-50">
+    <div class="row">
+    <div class="col">
+      <div class="card border-radius-xl overflow-hidden shadow-lg">
+        <div class="card-header border-0">
+          <h3 class="mb-0">{% if form.instance.pk %}Update{% else %}Create{% endif %} Table</h3>
+        </div>
+
+        <form action="" method="post" novalidate>
+          <div class="card-body pt-0">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label for="id_number" class="form-label">Table Number</label>
+              {{ form.number }}
+              {% if form.number.errors %}
+                <div class="text-danger">{{ form.number.errors }}</div>
+              {% endif %}
+            </div>
+            
+            <div class="mb-3">
+              <label for="id_description" class="form-label">Description (optional)</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="text-danger">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+
+            <input class="btn bg-gradient-info btn-lg mt-2" type="submit" value="{% if form.instance.pk %}Update{% else %}Create{% endif %}">
+            <a href="{% url 'kitchen:table-list' %}" class="btn btn-secondary btn-lg mt-2">Cancel</a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+  {% include "includes/javascripts.html" %}
+{% endblock javascripts %}

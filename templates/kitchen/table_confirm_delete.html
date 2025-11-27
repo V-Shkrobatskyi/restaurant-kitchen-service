@@ -1,0 +1,40 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Delete Table {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} {% endblock body_class %}
+
+{% block content %}
+  {% include "includes/header.html" %}
+
+  {% load static %}
+
+  <section class="col-md-12 z-index-2 mt-n12">
+    <div class="container w-50">
+      <div class="row">
+        <div class="col">
+          <div class="card border-radius-xl overflow-hidden shadow-lg">
+            <div class="card-header border-0">
+              <h3 class="mb-0">Delete Table</h3>
+              <p>Are you sure you want to delete <strong>Table {{ table.number }}</strong>?</p>
+              <p class="text-danger">This will also delete all orders associated with this table.</p>
+              <form action="" method="post">
+                {% csrf_token %}
+
+                <input class="btn bg-gradient-danger w-auto me-2" type="submit" value="Yes, delete">
+                <a href="{% url 'kitchen:table-list' %}" class="btn btn-secondary">Cancel</a>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+  {% include "includes/javascripts.html" %}
+{% endblock javascripts %}

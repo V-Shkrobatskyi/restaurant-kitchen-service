@@ -1,0 +1,92 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Table {{ table.number }} {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} {% endblock body_class %}
+
+{% block content %}
+  {% include "includes/header.html" %}
+
+  {% load static %}
+
+  <section class="col-md-12 z-index-2 mt-n12">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card border-radius-xl overflow-hidden shadow-lg">
+            <div class="card-header border-0">
+              <h3 class="mb-0">Table {{ table.number }}
+                <a href="{% url 'kitchen:table-delete' pk=table.id %}" class="btn bg-gradient-danger w-auto me-2">
+                  Delete
+                </a>
+                <a href="{% url 'kitchen:table-update' pk=table.id %}" class="btn bg-gradient-secondary w-auto me-2">
+                  Update
+                </a>
+              </h3>
+            </div>
+
+            <div class="card-body pt-0">
+              <p><strong>Table Number:</strong> {{ table.number }}</p>
+              <p><strong>Description:</strong> {{ table.description|default:"No description" }}</p>
+              <p><strong>UUID:</strong> <code>{{ table.uuid }}</code></p>
+              
+              <hr>
+              
+              <h4>QR Code</h4>
+              <p class="text-sm">Scan this QR code to access the menu for this table:</p>
+              <div class="text-center mb-3">
+                <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code for Table {{ table.number }}" style="max-width: 200px;">
+              </div>
+              <p class="text-sm text-center"><a href="{{ qr_url }}" target="_blank">{{ qr_url }}</a></p>
+              
+              <hr>
+              
+              <h4>Recent Orders</h4>
+              {% if recent_orders %}
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for order in recent_orders %}
+                      <tr>
+                        <td><a href="{% url 'kitchen:order-detail' pk=order.id %}">{{ order.id }}</a></td>
+                        <td>
+                          <span class="badge 
+                            {% if order.status == 'pending' %}bg-warning
+                            {% elif order.status == 'in_progress' %}bg-info
+                            {% elif order.status == 'completed' %}bg-success
+                            {% else %}bg-secondary{% endif %}">
+                            {{ order.get_status_display }}
+                          </span>
+                        </td>
+                        <td>{{ order.created_at|date:"M d, H:i" }}</td>
+                        <td>${{ order.get_total }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <p>No orders yet.</p>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+  {% include "includes/javascripts.html" %}
+{% endblock javascripts %}
