@@ -15,7 +15,7 @@ from kitchen.views import (
     DishCreateView,
     DishUpdateView,
     DishDeleteView,
-    DishAssignView,
+    DishAssignView, RestaurantTableListView, RestaurantTableDetailView,
 )
 
 
@@ -36,6 +36,8 @@ urlpatterns = [
     path("dishes/<int:pk>/update/", DishUpdateView.as_view(), name="dish-update"),
     path("dishes/<int:pk>/delete/", DishDeleteView.as_view(), name="dish-delete"),
     path("dishes/<int:pk>/assign/", DishAssignView.as_view(), name="dish-assign"),
+    path("tables/", RestaurantTableListView.as_view(), name="table-list"),
+    path("table/<uuid:uuid>/", RestaurantTableDetailView.as_view(), name="table-order"),
 ]
 
 app_name = "kitchen"

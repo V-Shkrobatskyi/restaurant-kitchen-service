@@ -8,7 +8,7 @@ from django.views import generic, View
 
 from kitchen.forms import CookCreationForm, CookExperienceUpdateForm, DishForm, CookSearchForm, DishSearchForm, \
     DishTypeSearchForm
-from kitchen.models import DishType, Dish, Cook
+from kitchen.models import DishType, Dish, Cook, RestaurantTable
 
 
 @login_required
@@ -220,3 +220,11 @@ class DishAssignView(LoginRequiredMixin, View):
         else:
             cooks.add(user)
         return HttpResponseRedirect(reverse("kitchen:dish-detail", args=[pk]))
+
+
+class RestaurantTableListView(LoginRequiredMixin, generic.ListView):
+    model = RestaurantTable
+
+
+class RestaurantTableDetailView(LoginRequiredMixin, generic.DetailView):
+    model = RestaurantTable

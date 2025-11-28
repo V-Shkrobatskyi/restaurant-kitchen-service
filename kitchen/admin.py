@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from kitchen.models import DishType, Dish, Cook
+from kitchen.models import DishType, Dish, Cook, RestaurantTable, Order, OrderItem
 
 
 @admin.register(Dish)
@@ -22,4 +22,12 @@ class CookAdmin(UserAdmin):
     )
 
 
+@admin.register(RestaurantTable)
+class RestaurantTableAdmin(admin.ModelAdmin):
+    fields = ("number",)
+    readonly_fields = ("qr_code",)  # QR code generate automatically
+
+
 admin.site.register(DishType)
+admin.site.register(Order)
+admin.site.register(OrderItem)
