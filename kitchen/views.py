@@ -1,14 +1,27 @@
+import base64
+from io import BytesIO
+
+import qrcode
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import generic, View
+from django.views.decorators.http import require_POST
 
-from kitchen.forms import CookCreationForm, CookExperienceUpdateForm, DishForm, CookSearchForm, DishSearchForm, \
-    DishTypeSearchForm
-from kitchen.models import DishType, Dish, Cook
+from kitchen.forms import (
+    CookCreationForm,
+    CookExperienceUpdateForm,
+    DishForm,
+    CookSearchForm,
+    DishSearchForm,
+    DishTypeSearchForm,
+    TableForm,
+    TableSearchForm,
+)
+from kitchen.models import DishType, Dish, Cook, Table, Order, OrderItem
 
 
 @login_required
@@ -16,12 +29,16 @@ def index(request: HttpRequest) -> HttpResponse:
     num_dishes = Dish.objects.count()
     num_cooks = Cook.objects.count()
     num_dish_types = DishType.objects.count()
+    num_tables = Table.objects.count()
+    num_orders = Order.objects.filter(status="pending").count()
     num_visits = request.session.get("num_visits", 0)
     request.session["num_visits"] = num_visits + 1
     context = {
         "num_dishes": num_dishes,
         "num_cooks": num_cooks,
         "num_dish_types": num_dish_types,
+        "num_tables": num_tables,
+        "num_orders": num_orders,
         "num_visits": num_visits + 1,
     }
     return render(request, "kitchen/index.html", context)
@@ -220,3 +237,256 @@ class DishAssignView(LoginRequiredMixin, View):
         else:
             cooks.add(user)
         return HttpResponseRedirect(reverse("kitchen:dish-detail", args=[pk]))
+
+
+# Table views (for authenticated staff)
+class TableListView(LoginRequiredMixin, generic.ListView):
+    model = Table
+    template_name = "kitchen/table_list.html"
+    context_object_name = "table_list"
+    paginate_by = 10
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(TableListView, self).get_context_data(**kwargs)
+        number = self.request.GET.get("number", "")
+        context["search_form"] = TableSearchForm(
+            initial={"number": number}
+        )
+        return context
+
+    def get_queryset(self):
+        queryset = Table.objects.all()
+        form = TableSearchForm(self.request.GET)
+        if form.is_valid():
+            number = form.cleaned_data.get("number")
+            if number:
+                queryset = queryset.filter(number=number)
+        return queryset
+
+
+class TableDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Table
+    template_name = "kitchen/table_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table = self.get_object()
+        # Generate QR code
+        qr_url = self.request.build_absolute_uri(
+            reverse("kitchen:public-menu", kwargs={"table_uuid": table.uuid})
+        )
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+        context["qr_code"] = qr_code_base64
+        context["qr_url"] = qr_url
+        context["recent_orders"] = table.orders.all()[:5]
+        return context
+
+
+class TableCreateView(LoginRequiredMixin, generic.CreateView):
+    model = Table
+    form_class = TableForm
+    template_name = "kitchen/table_form.html"
+    success_url = reverse_lazy("kitchen:table-list")
+
+
+class TableUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = Table
+    form_class = TableForm
+    template_name = "kitchen/table_form.html"
+    success_url = reverse_lazy("kitchen:table-list")
+
+
+class TableDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Table
+    template_name = "kitchen/table_confirm_delete.html"
+    success_url = reverse_lazy("kitchen:table-list")
+
+
+# Order views (for authenticated staff)
+class OrderListView(LoginRequiredMixin, generic.ListView):
+    model = Order
+    template_name = "kitchen/order_list.html"
+    context_object_name = "order_list"
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = Order.objects.all().select_related("table").prefetch_related("items__dish")
+        status = self.request.GET.get("status")
+        if status:
+            queryset = queryset.filter(status=status)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["status_choices"] = Order.STATUS_CHOICES
+        context["current_status"] = self.request.GET.get("status", "")
+        return context
+
+
+class OrderDetailView(LoginRequiredMixin, generic.DetailView):
+    model = Order
+    template_name = "kitchen/order_detail.html"
+
+
+class OrderUpdateStatusView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        new_status = request.POST.get("status")
+        if new_status in dict(Order.STATUS_CHOICES):
+            order.status = new_status
+            order.save()
+        return HttpResponseRedirect(reverse("kitchen:order-detail", args=[pk]))
+
+
+# Public views (for customers via QR code)
+def public_menu(request, table_uuid):
+    """Public menu page for customers to order from a specific table."""
+    table = get_object_or_404(Table, uuid=table_uuid)
+    dishes = Dish.objects.all().select_related("dish_type").order_by("dish_type__name", "name")
+    dish_types = DishType.objects.all()
+
+    # Get or create cart from session
+    cart_key = f"cart_{table_uuid}"
+    cart = request.session.get(cart_key, {})
+
+    # Calculate cart total
+    cart_items = []
+    cart_total = 0
+    for dish_id, quantity in cart.items():
+        try:
+            dish = Dish.objects.get(id=dish_id)
+            subtotal = dish.price * quantity
+            cart_items.append({
+                "dish": dish,
+                "quantity": quantity,
+                "subtotal": subtotal,
+            })
+            cart_total += subtotal
+        except Dish.DoesNotExist:
+            pass
+
+    context = {
+        "table": table,
+        "dishes": dishes,
+        "dish_types": dish_types,
+        "cart_items": cart_items,
+        "cart_total": cart_total,
+        "cart_count": sum(cart.values()) if cart else 0,
+    }
+    return render(request, "kitchen/public_menu.html", context)
+
+
+def add_to_cart(request, table_uuid):
+    """Add a dish to the cart."""
+    if request.method == "POST":
+        table = get_object_or_404(Table, uuid=table_uuid)
+        dish_id = request.POST.get("dish_id")
+
+        if dish_id:
+            cart_key = f"cart_{table_uuid}"
+            cart = request.session.get(cart_key, {})
+
+            # Add or increment quantity
+            if dish_id in cart:
+                cart[dish_id] += 1
+            else:
+                cart[dish_id] = 1
+
+            request.session[cart_key] = cart
+
+    return redirect("kitchen:public-menu", table_uuid=table_uuid)
+
+
+def remove_from_cart(request, table_uuid):
+    """Remove a dish from the cart or decrease its quantity."""
+    if request.method == "POST":
+        table = get_object_or_404(Table, uuid=table_uuid)
+        dish_id = request.POST.get("dish_id")
+
+        if dish_id:
+            cart_key = f"cart_{table_uuid}"
+            cart = request.session.get(cart_key, {})
+
+            if dish_id in cart:
+                cart[dish_id] -= 1
+                if cart[dish_id] <= 0:
+                    del cart[dish_id]
+
+            request.session[cart_key] = cart
+
+    return redirect("kitchen:public-menu", table_uuid=table_uuid)
+
+
+def clear_cart(request, table_uuid):
+    """Clear the entire cart."""
+    if request.method == "POST":
+        table = get_object_or_404(Table, uuid=table_uuid)
+        cart_key = f"cart_{table_uuid}"
+        if cart_key in request.session:
+            del request.session[cart_key]
+
+    return redirect("kitchen:public-menu", table_uuid=table_uuid)
+
+
+def submit_order(request, table_uuid):
+    """Submit the cart as an order."""
+    if request.method == "POST":
+        table = get_object_or_404(Table, uuid=table_uuid)
+        cart_key = f"cart_{table_uuid}"
+        cart = request.session.get(cart_key, {})
+
+        if cart:
+            notes = request.POST.get("notes", "")
+            order = Order.objects.create(table=table, notes=notes)
+
+            for dish_id, quantity in cart.items():
+                try:
+                    dish = Dish.objects.get(id=dish_id)
+                    OrderItem.objects.create(order=order, dish=dish, quantity=quantity)
+                except Dish.DoesNotExist:
+                    pass
+
+            # Clear the cart
+            del request.session[cart_key]
+
+            return render(request, "kitchen/order_confirmation.html", {
+                "table": table,
+                "order": order,
+            })
+
+    return redirect("kitchen:public-menu", table_uuid=table_uuid)
+
+
+def like_dish(request, table_uuid):
+    """Like a dish (public endpoint)."""
+    if request.method == "POST":
+        table = get_object_or_404(Table, uuid=table_uuid)
+        dish_id = request.POST.get("dish_id")
+
+        if dish_id:
+            # Track liked dishes in session to prevent multiple likes
+            liked_key = f"liked_dishes_{table_uuid}"
+            liked_dishes = request.session.get(liked_key, [])
+
+            if dish_id not in liked_dishes:
+                try:
+                    dish = Dish.objects.get(id=dish_id)
+                    dish.likes += 1
+                    dish.save()
+                    liked_dishes.append(dish_id)
+                    request.session[liked_key] = liked_dishes
+                except Dish.DoesNotExist:
+                    pass
+
+    return redirect("kitchen:public-menu", table_uuid=table_uuid)

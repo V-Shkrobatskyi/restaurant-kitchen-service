@@ -1,0 +1,105 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Order #{{ order.id }} {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block body_class %} {% endblock body_class %}
+
+{% block content %}
+  {% include "includes/header.html" %}
+
+  {% load static %}
+
+  <section class="col-md-12 z-index-2 mt-n12">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card border-radius-xl overflow-hidden shadow-lg">
+            <div class="card-header border-0">
+              <h3 class="mb-0">Order #{{ order.id }}
+                <span class="badge 
+                  {% if order.status == 'pending' %}bg-warning
+                  {% elif order.status == 'in_progress' %}bg-info
+                  {% elif order.status == 'completed' %}bg-success
+                  {% else %}bg-secondary{% endif %} ms-2">
+                  {{ order.get_status_display }}
+                </span>
+              </h3>
+            </div>
+
+            <div class="card-body pt-0">
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p><strong>Table:</strong> <a href="{% url 'kitchen:table-detail' pk=order.table.id %}">Table {{ order.table.number }}</a></p>
+                  <p><strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                  <p><strong>Updated:</strong> {{ order.updated_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <form action="{% url 'kitchen:order-update-status' pk=order.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <label><strong>Update Status:</strong></label>
+                    <select name="status" class="form-select form-select-sm d-inline-block w-auto">
+                      <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                      <option value="in_progress" {% if order.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                      <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                      <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm bg-gradient-success">Update</button>
+                  </form>
+                </div>
+              </div>
+              
+              {% if order.notes %}
+                <div class="alert alert-info">
+                  <strong>Notes:</strong> {{ order.notes }}
+                </div>
+              {% endif %}
+              
+              <h4>Order Items</h4>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Dish</th>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in order.items.all %}
+                    <tr>
+                      <td>{{ item.dish.name }}</td>
+                      <td>{{ item.dish.dish_type.name }}</td>
+                      <td>${{ item.dish.price }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>${{ item.get_subtotal }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th colspan="4" class="text-end">Total:</th>
+                    <th>${{ order.get_total }}</th>
+                  </tr>
+                </tfoot>
+              </table>
+              
+              <div class="mt-3">
+                <a href="{% url 'kitchen:order-list' %}" class="btn btn-secondary">Back to Orders</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+  {% include "includes/javascripts.html" %}
+{% endblock javascripts %}

@@ -16,6 +16,20 @@ from kitchen.views import (
     DishUpdateView,
     DishDeleteView,
     DishAssignView,
+    TableListView,
+    TableDetailView,
+    TableCreateView,
+    TableUpdateView,
+    TableDeleteView,
+    OrderListView,
+    OrderDetailView,
+    OrderUpdateStatusView,
+    public_menu,
+    add_to_cart,
+    remove_from_cart,
+    clear_cart,
+    submit_order,
+    like_dish,
 )
 
 
@@ -36,6 +50,23 @@ urlpatterns = [
     path("dishes/<int:pk>/update/", DishUpdateView.as_view(), name="dish-update"),
     path("dishes/<int:pk>/delete/", DishDeleteView.as_view(), name="dish-delete"),
     path("dishes/<int:pk>/assign/", DishAssignView.as_view(), name="dish-assign"),
+    # Table management (for authenticated staff)
+    path("tables/", TableListView.as_view(), name="table-list"),
+    path("tables/<int:pk>/", TableDetailView.as_view(), name="table-detail"),
+    path("tables/create/", TableCreateView.as_view(), name="table-create"),
+    path("tables/<int:pk>/update/", TableUpdateView.as_view(), name="table-update"),
+    path("tables/<int:pk>/delete/", TableDeleteView.as_view(), name="table-delete"),
+    # Order management (for authenticated staff)
+    path("orders/", OrderListView.as_view(), name="order-list"),
+    path("orders/<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
+    path("orders/<int:pk>/update-status/", OrderUpdateStatusView.as_view(), name="order-update-status"),
+    # Public menu and ordering (for customers via QR code)
+    path("menu/<uuid:table_uuid>/", public_menu, name="public-menu"),
+    path("menu/<uuid:table_uuid>/add/", add_to_cart, name="add-to-cart"),
+    path("menu/<uuid:table_uuid>/remove/", remove_from_cart, name="remove-from-cart"),
+    path("menu/<uuid:table_uuid>/clear/", clear_cart, name="clear-cart"),
+    path("menu/<uuid:table_uuid>/order/", submit_order, name="submit-order"),
+    path("menu/<uuid:table_uuid>/like/", like_dish, name="like-dish"),
 ]
 
 app_name = "kitchen"
