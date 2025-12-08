@@ -2,13 +2,15 @@ from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views import generic, View
+from django.contrib import messages
+from decimal import Decimal
 
 from kitchen.forms import CookCreationForm, CookExperienceUpdateForm, DishForm, CookSearchForm, DishSearchForm, \
-    DishTypeSearchForm
-from kitchen.models import DishType, Dish, Cook, RestaurantTable
+    DishTypeSearchForm, RestaurantTableForm
+from kitchen.models import DishType, Dish, Cook, RestaurantTable, Order, OrderItem
 
 
 @login_required
@@ -25,6 +27,28 @@ def index(request: HttpRequest) -> HttpResponse:
         "num_visits": num_visits + 1,
     }
     return render(request, "kitchen/index.html", context)
+
+
+def get_cart_key(uuid):
+    return f"cart_{uuid}"
+
+
+def get_cart(request, uuid):
+    key = get_cart_key(uuid)
+    return request.session.get(key, {"items": []})
+
+
+def save_cart(request, uuid, cart):
+    key = get_cart_key(uuid)
+    request.session[key] = cart
+    request.session.modified = True
+
+
+def clear_cart(request, uuid):
+    key = get_cart_key(uuid)
+    if key in request.session:
+        del request.session[key]
+        request.session.modified = True
 
 
 class DishTypeListView(LoginRequiredMixin, generic.ListView):
@@ -222,9 +246,192 @@ class DishAssignView(LoginRequiredMixin, View):
         return HttpResponseRedirect(reverse("kitchen:dish-detail", args=[pk]))
 
 
-class RestaurantTableListView(LoginRequiredMixin, generic.ListView):
-    model = RestaurantTable
+class RestaurantTableListView(LoginRequiredMixin, View):
+    template_name = "kitchen/restauranttable_list.html"
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return redirect("/")
+
+        tables = RestaurantTable.objects.all().order_by("number")
+
+        # Add active orders
+        tables_data = []
+        for t in tables:
+            orders = t.orders.filter(
+                status__in=["new", "accepted", "preparing", "served"]
+            ).order_by("-created_at")
+            tables_data.append((t, orders))
+
+        return render(request, self.template_name, {
+            "tables": tables,
+            "tables_data": tables_data
+        })
 
 
-class RestaurantTableDetailView(LoginRequiredMixin, generic.DetailView):
+class RestaurantTableCreateView(LoginRequiredMixin, generic.CreateView):
     model = RestaurantTable
+    form_class = RestaurantTableForm
+    template_name = "kitchen/restauranttable_form.html"
+    success_url = reverse_lazy("kitchen:table-list")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect("/")  # block non-staff users
+        return super().dispatch(request, *args, **kwargs)
+
+
+class TableLandingView(View):
+    template_name = "kitchen/table_landing.html"
+
+    def get(self, request, uuid):
+        table = get_object_or_404(RestaurantTable, uuid=uuid)
+
+        active_statuses = ["new", "accepted", "preparing", "served"]
+
+        if request.user.is_authenticated and request.user.is_staff:
+            # STAFF mode
+            active_orders = table.orders.filter(status__in=active_statuses).order_by("-created_at")
+            return render(request, self.template_name, {
+                "table": table,
+                "active_orders": active_orders,
+                "is_staff": True,
+            })
+
+        # GUEST mode
+        session_key = f"guest_orders_{uuid}"
+        guest_order_ids = request.session.get(session_key, [])
+
+        guest_orders = (
+            Order.objects.filter(id__in=guest_order_ids)
+            .order_by("-created_at")
+        )
+
+        return render(request, self.template_name, {
+            "table": table,
+            "guest_orders": guest_orders,
+            "is_staff": False,
+        })
+
+
+class TableMenuView(View):
+    template_name = "kitchen/table_menu.html"
+
+    def get(self, request, uuid):
+        table = get_object_or_404(RestaurantTable, uuid=uuid)
+        dish_types = DishType.objects.all().order_by("name")
+        selected_type = request.GET.get("type")  # from ?type=ID
+
+        if selected_type:
+            dishes = Dish.objects.filter(dish_type_id=selected_type).order_by("name")
+        else:
+            dishes = Dish.objects.all().order_by("name")
+
+        cart = get_cart(request, uuid)
+
+        return render(request, self.template_name, {
+            "table": table,
+            "dishes": dishes,
+            "dish_types": dish_types,
+            "selected_type": selected_type,
+            "cart": cart,
+        })
+
+
+class AddToCartView(View):
+    def post(self, request, uuid, dish_id):
+        table = get_object_or_404(RestaurantTable, uuid=uuid)
+        dish = get_object_or_404(Dish, id=dish_id)
+
+        cart = get_cart(request, uuid)
+
+        for item in cart["items"]:
+            if item["dish_id"] == dish.id:
+                item["quantity"] += 1
+                break
+        else:
+            cart["items"].append({"dish_id": dish.id, "quantity": 1})
+
+        save_cart(request, uuid, cart)
+
+        messages.success(request, f"{dish.name}  has been added to the cart.")
+        return redirect(request.META.get("HTTP_REFERER", f"/table/{uuid}/menu/"))
+
+
+class RemoveFromCartView(View):
+    def post(self, request, uuid, dish_id):
+        cart = get_cart(request, uuid)
+
+        cart["items"] = [
+            item for item in cart["items"]
+            if item["dish_id"] != dish_id
+        ]
+
+        save_cart(request, uuid, cart)
+        return redirect("kitchen:table-cart", uuid=uuid)
+
+
+class CartView(View):
+    template_name = "kitchen/cart.html"
+
+    def get(self, request, uuid):
+        table = get_object_or_404(RestaurantTable, uuid=uuid)
+        cart = get_cart(request, uuid)
+
+        detailed_items = []
+        total = Decimal("0.00")
+
+        for item in cart["items"]:
+            dish = Dish.objects.get(id=item["dish_id"])
+            subtotal = dish.price * item["quantity"]
+            detailed_items.append({
+                "dish": dish,
+                "quantity": item["quantity"],
+                "subtotal": subtotal,
+            })
+            total += subtotal
+
+        return render(request, self.template_name, {
+            "table": table,
+            "items": detailed_items,
+            "total": total,
+        })
+
+
+class CheckoutView(View):
+    def post(self, request, uuid):
+        table = get_object_or_404(RestaurantTable, uuid=uuid)
+        cart = get_cart(request, uuid)
+
+        if not cart["items"]:
+            messages.error(request, "The cart is empty.")
+            return redirect("kitchen:table-cart", uuid=uuid)
+
+        order = Order.objects.create(
+            table=table,
+            user=request.user if request.user.is_authenticated else None,
+            status="new",
+        )
+
+        for item in cart["items"]:
+            dish = Dish.objects.get(id=item["dish_id"])
+            OrderItem.objects.create(
+                order=order,
+                dish=dish,
+                quantity=item["quantity"],
+                price=dish.price,
+            )
+
+        # save guest order history
+        if not request.user.is_authenticated:
+            key = f"guest_orders_{uuid}"
+            prev = request.session.get(key, [])
+            prev.append(order.id)
+            request.session[key] = prev
+            request.session.modified = True
+            print("GUEST SESSION AFTER CHECKOUT:", request.session.get(key))
+
+        clear_cart(request, uuid)
+
+        messages.success(request, "The order has been successfully created!")
+        return redirect("kitchen:table-landing", uuid=uuid)

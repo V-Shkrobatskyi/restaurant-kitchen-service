@@ -1,0 +1,110 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Tables {% endblock title %}
+{% block stylesheets %}{% endblock stylesheets %}
+{% block body_class %}{% endblock body_class %}
+
+{% block content %}
+
+{% include "includes/header.html" %}
+{% load static %}
+
+<section class="col-md-12 z-index-2 mt-n12">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card border-radius-xl overflow-hidden shadow-lg">
+          <div class="card-header border-0">
+            <h3 class="mb-0">
+              Tables (Active Orders)
+              <a href="{% url 'kitchen:table-create' %}"
+                 class="btn bg-gradient-success w-auto me-2"
+                 style="float: right">
+                Create Table
+              </a>
+            </h3>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+              <thead>
+                <tr>
+                  <th>Table</th>
+                  <th>Order ID</th>
+                  <th>Status</th>
+                  <th>Guest/User</th>
+                  <th>Created</th>
+                  <th>Total</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+              {% for table, orders in tables_data %}
+
+                <!-- ALWAYS VISIBLE ROW FOR THE TABLE -->
+                <tr class="bg-light">
+                  <td class="text-sm fw-bold">#{{ table.number }}</td>
+                  <td colspan="4" class="text-muted">UUID: {{ table.uuid }}</td>
+                  <td></td>
+                  <td class="text-end">
+
+                    <a href="{% url 'kitchen:table-landing' uuid=table.uuid %}"
+                       class="btn bg-gradient-info btn-sm">
+                      Open
+                    </a>
+
+                    {% if table.qr_code %}
+                      <a href="{{ table.qr_code.url }}"
+                         target="_blank"
+                         class="btn bg-gradient-secondary btn-sm ms-1">
+                        QR
+                      </a>
+                    {% endif %}
+
+                  </td>
+                </tr>
+
+                {% if orders %}
+                  {% for order in orders %}
+                    <tr>
+                      <td></td>
+                      <td class="text-sm">#{{ order.id }}</td>
+                      <td class="text-sm">{{ order.get_status_display }}</td>
+                      <td class="text-sm">
+                        {% if order.user %}
+                          {{ order.user.username }}
+                        {% else %}
+                          <span class="text-muted">guest</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-sm">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                      <td class="text-sm">{{ order.total }} грн</td>
+                      <td></td>
+                    </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td></td>
+                    <td colspan="6" class="text-sm text-muted">No active orders</td>
+                  </tr>
+                {% endif %}
+
+              {% endfor %}
+
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}
+
+{% block javascripts %}
+  {% include "includes/javascripts.html" %}
+{% endblock javascripts %}

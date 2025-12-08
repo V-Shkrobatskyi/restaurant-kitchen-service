@@ -1,0 +1,54 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Table {{ table.number }} {% endblock title %}
+{% block content %}
+
+{% include "includes/header.html" %}
+{% load static %}
+
+<section class="col-md-12 z-index-2 mt-n12">
+  <div class="container">
+
+    <div class="row">
+      <div class="col">
+        <div class="card border-radius-xl overflow-hidden shadow-lg">
+
+          <div class="card-header border-0">
+            <h3 class="mb-0">
+              Table №{{ table.number }}
+            </h3>
+            {% if is_staff %}
+              <span class="text-sm text-muted">id: {{ table.uuid }}</span>
+            {% endif %}
+          </div>
+
+          <div class="card-body">
+
+            {% if is_staff %}
+              <h4 class="mb-3">Active Orders</h4>
+              {% include "includes/order_list.html" with orders=active_orders %}
+            {% else %}
+              <h4 class="mb-3">Your Orders</h4>
+
+              {% if guest_orders %}
+                {% include "includes/order_list.html" with orders=guest_orders %}
+              {% else %}
+                <p class="text-muted">You have no orders yet.</p>
+              {% endif %}
+
+              <a href="{% url 'kitchen:table-menu' uuid=table.uuid %}"
+                 class="btn bg-gradient-success mt-3">
+                Open Menu
+              </a>
+            {% endif %}
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock content %}

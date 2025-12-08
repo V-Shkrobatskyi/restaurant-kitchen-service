@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import TextInput, Textarea, NumberInput
 
-from kitchen.models import Cook, Dish
+from kitchen.models import Cook, Dish, RestaurantTable
 
 
 class CookCreationForm(UserCreationForm):
@@ -96,3 +96,14 @@ class DishTypeSearchForm(forms.Form):
             attrs={"placeholder": "Search by Name"}
         )
     )
+
+class RestaurantTableForm(forms.ModelForm):
+    class Meta:
+        model = RestaurantTable
+        fields = ["number"]
+        widgets = {
+            "number": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Enter table number",
+            })
+        }

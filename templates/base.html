@@ -23,7 +23,9 @@
       {% block content %}
       {% endblock %}
       {% block pagination %}
-        {% include "includes/pagination.html" %}
+        {% if page_obj %}
+          {% include "includes/htmx_pagination.html" %}
+        {% endif %}
       {% endblock %}
     </div>
   </div>

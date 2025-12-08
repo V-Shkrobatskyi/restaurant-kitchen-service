@@ -1,0 +1,78 @@
+{% extends 'layouts/base-presentation.html' %}
+{% block title %} Cart — Table {{ table.number }} {% endblock %}
+{% block content %}
+
+{% include "includes/header.html" %}
+{% load static %}
+
+<section class="col-md-12 z-index-2 mt-n12">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+
+        <div class="card border-radius-xl overflow-hidden shadow-lg">
+          <div class="card-header border-0">
+            <h3 class="mb-0">
+                Your Cart
+            </h3>
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{% url 'kitchen:table-menu' uuid=table.uuid %}"
+                class="btn bg-gradient-secondary w-auto me-2" style="float: right">
+                Back to Menu
+              </a>
+            </div>
+          </div>
+
+          <div class="card-body p-4">
+
+            {% if items %}
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Dish</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td>{{ item.dish.name }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.dish.price }} грн</td>
+                  <td>{{ item.subtotal }} грн</td>
+                  <td>
+                    <form action="{% url 'kitchen:table-remove-from-cart' uuid=table.uuid dish_id=item.dish.id %}"
+                          method="post">
+                      {% csrf_token %}
+                      <button class="btn bg-gradient-danger btn-sm">Remove</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+            <h4 class="mt-4">Total: {{ total }} грн</h4>
+
+            <form method="post" action="{% url 'kitchen:table-checkout' uuid=table.uuid %}">
+              {% csrf_token %}
+              <button class="btn bg-gradient-success mt-3">Checkout</button>
+            </form>
+
+            {% else %}
+              <p class="text-muted">Your cart is empty.</p>
+            {% endif %}
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

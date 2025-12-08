@@ -1,0 +1,16 @@
+<div class="card-body">
+  {% if orders %}
+    <ul class="list-group">
+      {% for order in orders %}
+        <li class="list-group-item">
+          <strong>Order #{{ order.id }}</strong><br>
+          Status: {{ order.get_status_display }}<br>
+          Total: {{ order.total }} грн<br>
+          Created: {{ order.created_at|date:"d.m.Y H:i" }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No orders.</p>
+  {% endif %}
+</div>

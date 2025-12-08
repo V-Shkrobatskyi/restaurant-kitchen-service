@@ -15,7 +15,8 @@ from kitchen.views import (
     DishCreateView,
     DishUpdateView,
     DishDeleteView,
-    DishAssignView, RestaurantTableListView, RestaurantTableDetailView,
+    DishAssignView, RestaurantTableListView, CartView, TableMenuView, TableLandingView, AddToCartView,
+    RemoveFromCartView, CheckoutView, RestaurantTableCreateView,
 )
 
 
@@ -36,8 +37,26 @@ urlpatterns = [
     path("dishes/<int:pk>/update/", DishUpdateView.as_view(), name="dish-update"),
     path("dishes/<int:pk>/delete/", DishDeleteView.as_view(), name="dish-delete"),
     path("dishes/<int:pk>/assign/", DishAssignView.as_view(), name="dish-assign"),
+
+    # --- Staff table monitor ---
     path("tables/", RestaurantTableListView.as_view(), name="table-list"),
-    path("table/<uuid:uuid>/", RestaurantTableDetailView.as_view(), name="table-order"),
+    path("tables/create/", RestaurantTableCreateView.as_view(), name="table-create"),
+
+    # --- Main table landing (guest + staff) ---
+    path("table/<uuid:uuid>/", TableLandingView.as_view(), name="table-landing"),
+
+    # --- Menu page (guest selects dishes) ---
+    path("table/<uuid:uuid>/menu/", TableMenuView.as_view(), name="table-menu"),
+
+    # --- Cart page ---
+    path("table/<uuid:uuid>/cart/", CartView.as_view(), name="table-cart"),
+
+    # --- Cart modification ---
+    path("table/<uuid:uuid>/add/<int:dish_id>/", AddToCartView.as_view(), name="table-add-to-cart"),
+    path("table/<uuid:uuid>/remove/<int:dish_id>/", RemoveFromCartView.as_view(), name="table-remove-from-cart"),
+
+    # --- Checkout (creates Order + OrderItems) ---
+    path("table/<uuid:uuid>/checkout/", CheckoutView.as_view(), name="table-checkout"),
 ]
 
 app_name = "kitchen"

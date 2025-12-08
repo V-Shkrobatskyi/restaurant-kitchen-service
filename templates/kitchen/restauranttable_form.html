@@ -1,0 +1,51 @@
+{% extends 'layouts/base-presentation.html' %}
+
+{% block title %} Create Table {% endblock title %}
+{% block content %}
+
+{% include "includes/header.html" %}
+
+<section class="col-md-12 z-index-2 mt-n12">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+
+        <div class="card border-radius-xl overflow-hidden shadow-lg">
+          <div class="card-header border-0">
+            <h3 class="mb-0">
+              Create Table
+              <a href="{% url 'kitchen:table-list' %}"
+                 class="btn bg-gradient-secondary w-auto float-end">
+                Back
+              </a>
+            </h3>
+          </div>
+
+          <div class="card-body p-4">
+
+            <form method="post">
+              {% csrf_token %}
+              {{ form.non_field_errors }}
+
+              <div class="mb-3">
+                <label class="form-label">Table number</label>
+                {{ form.number }}
+                {% if form.number.errors %}
+                  <p class="text-danger small">{{ form.number.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <button type="submit" class="btn bg-gradient-success">
+                Create
+              </button>
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

@@ -29,7 +29,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.environ.get("DJANGO_DEBUG", "") != "False"
 
 ALLOWED_HOSTS = ["127.0.0.1", "restaurant-kitchen-service-zqs1.onrender.com"]
-
+SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
 
 # Application definition
 
@@ -138,6 +138,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = "staticfiles/"
 
 ASSETS_ROOT = "/static/assets"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
