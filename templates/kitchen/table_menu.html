@@ -34,22 +34,20 @@
 
             <!-- FILTER BUTTONS (Glovo/UberEats style) -->
             <div class="mb-4">
-              <div class="btn-group" role="group">
-
-                <!-- ALL -->
-                <a href="?type="
-                   class="btn {% if not selected_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                  All
-                </a>
-
-                <!-- DISH TYPES -->
-                {% for dt in dish_types %}
-                  <a href="?type={{ dt.id }}"
-                     class="btn {% if selected_type == dt.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                    {{ dt.name }}
+              <div class="d-flex flex-row flex-nowrap overflow-auto py-2 custom-scroll-bar">
+                <div class="d-flex" role="group">
+                  <a href="?type="
+                     class="btn {% if not selected_type %}btn-primary{% else %}btn-outline-primary{% endif %} flex-shrink-0 me-2">
+                    All
                   </a>
-                {% endfor %}
 
+                  {% for dt in dish_types %}
+                    <a href="?type={{ dt.id }}"
+                       class="btn {% if selected_type == dt.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %} flex-shrink-0 me-2">
+                      {{ dt.name }}
+                    </a>
+                  {% endfor %}
+                </div>
               </div>
             </div>
 
