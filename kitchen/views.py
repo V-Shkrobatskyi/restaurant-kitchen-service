@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.views import generic, View
 from django.contrib import messages
@@ -316,11 +317,13 @@ class TableLandingView(View):
 
 class TableMenuView(View):
     template_name = "kitchen/table_menu.html"
+    fragment_template_name = "kitchen/partials/dishes_grid_fragment.html"
+    cart_fragment_name = "kitchen/partials/cart_button_fragment.html"
 
     def get(self, request, uuid):
         table = get_object_or_404(RestaurantTable, uuid=uuid)
         dish_types = DishType.objects.all().order_by("name")
-        selected_type = request.GET.get("type")  # from ?type=ID
+        selected_type = request.GET.get("type")
 
         if selected_type:
             dishes = Dish.objects.filter(dish_type_id=selected_type).order_by("name")
@@ -329,13 +332,18 @@ class TableMenuView(View):
 
         cart = get_cart(request, uuid)
 
-        return render(request, self.template_name, {
+        context = {
             "table": table,
             "dishes": dishes,
             "dish_types": dish_types,
             "selected_type": selected_type,
             "cart": cart,
-        })
+        }
+
+        if 'HX-Request' in request.headers:
+            return render(request, "kitchen/partials/dishes_grid_fragment.html", context)
+
+        return render(request, self.template_name, context)
 
 
 class AddToCartView(View):
@@ -357,11 +365,27 @@ class AddToCartView(View):
             context = {
                 "table": table,
                 "cart": cart,
+                "dish": dish,
             }
-            return render(request, 'kitchen/partials/cart_button_fragment.html', context)
+            dish_form_html = render_to_string(
+                'kitchen/partials/dish_form_fragment.html',
+                context,
+                request=request
+            )
+            cart_context = context.copy()
+            cart_context['is_oob'] = True
+
+            cart_btn_html = render_to_string(
+                'kitchen/partials/cart_button_fragment.html',
+                cart_context,
+                request=request
+            )
+
+            return HttpResponse(dish_form_html + cart_btn_html)
 
         messages.success(request, f"{dish.name} has been added to the cart.")
         return redirect(request.META.get("HTTP_REFERER", f"/table/{uuid}/menu/"))
+
 
 class RemoveFromCartView(View):
     def post(self, request, uuid, dish_id):

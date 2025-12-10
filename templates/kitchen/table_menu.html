@@ -19,11 +19,9 @@
               Menu for Table №{{ table.number }}
             </h3>
             <div class="d-flex justify-content-end gap-2">
-              <a href="{% url 'kitchen:table-cart' uuid=table.uuid %}"
-                class="btn bg-gradient-info w-auto me-2" style="float: right"
-                id="cart-header-btn">
-                Cart ({{ cart.items|length }})
-              </a>
+
+              {% include "kitchen/partials/cart_button_fragment.html" %}
+
               <a href="{% url 'kitchen:table-landing' uuid=table.uuid %}"
                 class="btn bg-gradient-secondary w-auto" style="float: right">
                 Back to Table
@@ -33,61 +31,35 @@
 
           <div class="card-body p-4">
 
-            <!-- FILTER BUTTONS (Glovo/UberEats style) -->
             <div class="mb-4">
               <div class="d-flex flex-row flex-nowrap overflow-auto py-2 custom-scroll-bar">
                 <div class="d-flex" role="group">
+
                   <a href="?type="
+                     hx-get="?type="
+                     hx-target="#dishes-grid"
+                     hx-swap="outerHTML"
                      class="btn {% if not selected_type %}btn-primary{% else %}btn-outline-primary{% endif %} flex-shrink-0 me-2">
                     All
                   </a>
 
                   {% for dt in dish_types %}
                     <a href="?type={{ dt.id }}"
+                       hx-get="?type={{ dt.id }}"
+                       hx-target="#dishes-grid"
+                       hx-swap="outerHTML"
                        class="btn {% if selected_type == dt.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %} flex-shrink-0 me-2">
                       {{ dt.name }}
                     </a>
                   {% endfor %}
+
                 </div>
               </div>
             </div>
 
-            <!-- DISHES GRID -->
-            <div class="row">
-              {% for dish in dishes %}
-                <div class="col-md-4 mb-4">
-                  <div class="card shadow-sm h-100">
+            {% include "kitchen/partials/dishes_grid_fragment.html" %}
 
-                    <div class="card-body d-flex flex-column">
-
-                      <h5 class="card-title">{{ dish.name }}</h5>
-
-                      <p class="card-text text-muted" style="min-height: 60px;">
-                        {{ dish.description }}
-                      </p>
-
-                      <p class="fw-bold mb-3">{{ dish.price }} грн</p>
-
-                      <form method="post"
-                            action="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
-                            class="mt-auto"
-                            hx-post="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
-                            hx-target="#cart-header-btn"
-                            hx-swap="outerHTML">                                                            {% csrf_token %}
-                        <button class="btn bg-gradient-success w-100">
-                          Add to cart
-                        </button>
-                      </form>
-
-                    </div>
-                  </div>
-                </div>
-              {% empty %}
-                <p class="text-muted">No dishes for this category.</p>
-              {% endfor %}
-            </div>
-
-          </div> <!-- card-body -->
+          </div>
 
         </div>
       </div>

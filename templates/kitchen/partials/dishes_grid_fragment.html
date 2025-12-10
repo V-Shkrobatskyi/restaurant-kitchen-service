@@ -1,0 +1,25 @@
+<div id="dishes-grid">
+  <!-- DISHES -->
+  <div class="row">
+    {% for dish in dishes %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title">{{ dish.name }}</h5>
+            <p class="card-text text-muted" style="min-height: 60px;">
+              {{ dish.description }}
+            </p>
+
+            <p class="fw-bold mb-3">{{ dish.price }} грн</p>
+
+            {% include "kitchen/partials/dish_form_fragment.html" with dish=dish table=table cart=cart %}
+
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">No dishes for this category.</p>
+    {% endfor %}
+  </div>
+</div>

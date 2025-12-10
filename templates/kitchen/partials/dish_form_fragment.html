@@ -1,0 +1,26 @@
+{% load static %}
+<form method="post"
+      action="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
+      class="mt-auto"
+      id="dish-form-{{ dish.id }}"
+      hx-post="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
+      hx-target="#dish-form-{{ dish.id }}"  hx-swap="outerHTML">
+  {% csrf_token %}
+  <button class="btn bg-gradient-success w-100">
+    Add to cart
+
+    {% with 0 as dish_qty %}
+      {% for item in cart.items %}
+        {% if item.dish_id == dish.id %}
+          {% with item.quantity as dish_qty_found %}
+            {% if dish_qty_found %}
+              {% with dish_qty_found as dish_qty %}
+                ({{ dish_qty }})
+              {% endwith %}
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+    {% endwith %}
+  </button>
+</form>
