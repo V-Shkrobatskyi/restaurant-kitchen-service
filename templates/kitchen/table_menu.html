@@ -20,7 +20,8 @@
             </h3>
             <div class="d-flex justify-content-end gap-2">
               <a href="{% url 'kitchen:table-cart' uuid=table.uuid %}"
-                class="btn bg-gradient-info w-auto me-2" style="float: right">
+                class="btn bg-gradient-info w-auto me-2" style="float: right"
+                id="cart-header-btn">
                 Cart ({{ cart.items|length }})
               </a>
               <a href="{% url 'kitchen:table-landing' uuid=table.uuid %}"
@@ -69,8 +70,10 @@
 
                       <form method="post"
                             action="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
-                            class="mt-auto">
-                        {% csrf_token %}
+                            class="mt-auto"
+                            hx-post="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
+                            hx-target="#cart-header-btn"
+                            hx-swap="outerHTML">                                                            {% csrf_token %}
                         <button class="btn bg-gradient-success w-100">
                           Add to cart
                         </button>

@@ -339,10 +339,9 @@ class TableMenuView(View):
 
 
 class AddToCartView(View):
-    def post(self, request, uuid, dish_id):
+    def post(self, request: HttpRequest, uuid, dish_id):
         table = get_object_or_404(RestaurantTable, uuid=uuid)
         dish = get_object_or_404(Dish, id=dish_id)
-
         cart = get_cart(request, uuid)
 
         for item in cart["items"]:
@@ -354,9 +353,15 @@ class AddToCartView(View):
 
         save_cart(request, uuid, cart)
 
-        messages.success(request, f"{dish.name}  has been added to the cart.")
-        return redirect(request.META.get("HTTP_REFERER", f"/table/{uuid}/menu/"))
+        if 'HX-Request' in request.headers:
+            context = {
+                "table": table,
+                "cart": cart,
+            }
+            return render(request, 'kitchen/partials/cart_button_fragment.html', context)
 
+        messages.success(request, f"{dish.name} has been added to the cart.")
+        return redirect(request.META.get("HTTP_REFERER", f"/table/{uuid}/menu/"))
 
 class RemoveFromCartView(View):
     def post(self, request, uuid, dish_id):
