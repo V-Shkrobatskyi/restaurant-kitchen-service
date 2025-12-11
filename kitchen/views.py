@@ -208,6 +208,11 @@ class CookCreateView(LoginRequiredMixin, generic.CreateView):
     model = Cook
     form_class = CookCreationForm
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
 
 class CookExperienceUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Cook

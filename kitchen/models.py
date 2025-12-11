@@ -20,8 +20,19 @@ class DishType(models.Model):
 
 
 class Cook(AbstractUser):
+    ROLE_CHOICES = (
+        ('staff', 'Staff'),
+        ('cook', 'Cook'),
+        ('client', 'Client'),
+    )
+
     years_of_experience = models.PositiveSmallIntegerField(
         default=0,
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='cook'
     )
 
     class Meta:

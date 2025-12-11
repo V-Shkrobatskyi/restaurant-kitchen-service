@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django import forms
-from django.forms import TextInput, Textarea, NumberInput
+from django.forms import TextInput, Textarea, NumberInput, Select
 
 from kitchen.models import Cook, Dish, RestaurantTable
 
@@ -12,13 +12,37 @@ class CookCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = Cook
-        fields = UserCreationForm.Meta.fields + ("first_name", "last_name", "years_of_experience", )
+        fields = UserCreationForm.Meta.fields + ("first_name", "last_name", "years_of_experience", "role",)
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget = TextInput(attrs={
-                "class": "form-control mb-3"})
+
+        if not self.user or not self.user.is_staff:
+            if 'role' in self.fields:
+                del self.fields['role']
+
+        for field_name in self.fields:
+            field = self.fields[field_name]
+
+            if field_name == 'role':
+                field.widget.attrs.update({
+                    "class": "form-select mb-3"
+                })
+            else:
+                field.widget.attrs.update({
+                    "class": "form-control mb-3"
+                })
+
+    def save(self, commit=True):
+        cook = super().save(commit=False)
+
+        if not self.user or not self.user.is_staff:
+            cook.role = 'cook'
+
+        if commit:
+            cook.save()
+        return cook
 
     def clean_years_of_experience(self):
         return validate_years_of_experience(self.cleaned_data["years_of_experience"])
