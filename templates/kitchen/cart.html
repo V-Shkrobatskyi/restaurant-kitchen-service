@@ -41,8 +41,8 @@
                 <tr>
                   <td>{{ item.dish.name }}</td>
                   <td>{{ item.quantity }}</td>
-                  <td>{{ item.dish.price }} грн</td>
-                  <td>{{ item.subtotal }} грн</td>
+                  <td>{{ item.dish.price }} ₴</td>
+                  <td>{{ item.subtotal }} ₴</td>
                   <td>
                     <form action="{% url 'kitchen:table-remove-from-cart' uuid=table.uuid dish_id=item.dish.id %}"
                           method="post">
@@ -55,7 +55,7 @@
               </tbody>
             </table>
 
-            <h4 class="mt-4">Total: {{ total }} грн</h4>
+            <h4 class="mt-4">Total: {{ total }} ₴</h4>
 
             <form method="post" action="{% url 'kitchen:table-checkout' uuid=table.uuid %}">
               {% csrf_token %}
