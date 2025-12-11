@@ -31,7 +31,6 @@
                 <tr>
                   <th>Dish</th>
                   <th>Qty</th>
-                  <th>Price</th>
                   <th>Subtotal</th>
                   <th></th>
                 </tr>
@@ -41,13 +40,12 @@
                 <tr>
                   <td>{{ item.dish.name }}</td>
                   <td>{{ item.quantity }}</td>
-                  <td>{{ item.dish.price }} ₴</td>
                   <td>{{ item.subtotal }} ₴</td>
                   <td>
                     <form action="{% url 'kitchen:table-remove-from-cart' uuid=table.uuid dish_id=item.dish.id %}"
                           method="post">
                       {% csrf_token %}
-                      <button class="btn bg-gradient-danger btn-sm">Remove</button>
+                      <button class="btn bg-gradient-danger mb-0 px-3">X</button>
                     </form>
                   </td>
                 </tr>
