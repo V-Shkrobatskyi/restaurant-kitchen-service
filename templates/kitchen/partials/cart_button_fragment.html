@@ -1,5 +1,5 @@
 <a href="{% url 'kitchen:table-cart' uuid=table.uuid %}"
-   class="btn bg-gradient-info w-auto me-2" style="float: right"
+   class="btn btn-outline-dark w-auto me-2" style="float: right"
    id="cart-header-btn"
-   {% if is_oob %}hx-swap-oob="true"{% endif %}> Cart ({{ cart.items|length }})
+   {% if is_oob %}hx-swap-oob="true"{% endif %}> 🛒 ({{ cart.items|length }})
 </a>
