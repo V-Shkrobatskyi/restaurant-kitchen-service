@@ -1,26 +1,28 @@
-{% load static %}
-<form method="post"
-      action="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
-      class="mt-auto"
-      id="dish-form-{{ dish.id }}"
-      hx-post="{% url 'kitchen:table-add-to-cart' uuid=table.uuid dish_id=dish.id %}"
-      hx-target="#dish-form-{{ dish.id }}"  hx-swap="outerHTML">
-  {% csrf_token %}
-  <button class="btn bg-gradient-success w-100">
-    Add to cart
+{% load cart_tags %}
 
-    {% with 0 as dish_qty %}
-      {% for item in cart.items %}
-        {% if item.dish_id == dish.id %}
-          {% with item.quantity as dish_qty_found %}
-            {% if dish_qty_found %}
-              {% with dish_qty_found as dish_qty %}
-                ({{ dish_qty }})
-              {% endwith %}
-            {% endif %}
-          {% endwith %}
-        {% endif %}
-      {% endfor %}
-    {% endwith %}
-  </button>
-</form>
+<div id="dish-form-{{ dish.id }}"
+     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {% with qty=cart.quantity_map|get_item:dish.id|default:0 %}
+    <div class="d-flex align-items-center justify-content-between border rounded p-1" style="min-width: 120px;">
+
+      <button class="btn btn-sm btn-outline-danger mb-0 px-3"
+              hx-post="{% url 'kitchen:table-update-cart' table.uuid dish.id 'decrease' %}"
+              hx-target="#dish-form-{{ dish.id }}"
+              hx-swap="outerHTML"
+              {% if qty == 0 %}disabled{% endif %}>
+          -
+      </button>
+
+      <span class="fw-bold px-1">{{ qty }}</span>
+
+      <button class="btn btn-sm btn-outline-success mb-0 px-3"
+              hx-post="{% url 'kitchen:table-update-cart' table.uuid dish.id 'add' %}"
+              hx-target="#dish-form-{{ dish.id }}"
+              hx-swap="outerHTML">
+          +
+      </button>
+
+    </div>
+  {% endwith %}
+</div>

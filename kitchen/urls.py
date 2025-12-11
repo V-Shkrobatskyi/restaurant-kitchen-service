@@ -15,7 +15,7 @@ from kitchen.views import (
     DishCreateView,
     DishUpdateView,
     DishDeleteView,
-    DishAssignView, RestaurantTableListView, CartView, TableMenuView, TableLandingView, AddToCartView,
+    DishAssignView, RestaurantTableListView, CartView, TableMenuView, TableLandingView, UpdateCartView,
     RemoveFromCartView, CheckoutView, RestaurantTableCreateView,
 )
 
@@ -52,7 +52,7 @@ urlpatterns = [
     path("table/<uuid:uuid>/cart/", CartView.as_view(), name="table-cart"),
 
     # --- Cart modification ---
-    path("table/<uuid:uuid>/add/<int:dish_id>/", AddToCartView.as_view(), name="table-add-to-cart"),
+    path("table/<uuid:uuid>/add/<int:dish_id>/<str:action>/", UpdateCartView.as_view(), name="table-update-cart"),
     path("table/<uuid:uuid>/remove/<int:dish_id>/", RemoveFromCartView.as_view(), name="table-remove-from-cart"),
 
     # --- Checkout (creates Order + OrderItems) ---

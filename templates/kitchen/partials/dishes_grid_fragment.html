@@ -11,9 +11,13 @@
               {{ dish.description }}
             </p>
 
-            <p class="fw-bold mb-3">{{ dish.price }} ₴</p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
 
-            {% include "kitchen/partials/dish_form_fragment.html" with dish=dish table=table cart=cart %}
+              <span class="fw-bold fs-5 text-dark">{{ dish.price }} ₴</span>
+
+              {% include "kitchen/partials/dish_form_fragment.html" with dish=dish table=table cart=cart %}
+
+            </div>
 
           </div>
         </div>

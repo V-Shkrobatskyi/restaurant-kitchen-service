@@ -36,6 +36,7 @@ def get_cart_with_total(request, uuid):
 
     if not items:
         cart["total_price"] = 0
+        cart["quantity_map"] = {}
         return cart
 
     dish_ids = [item["dish_id"] for item in items]
@@ -44,11 +45,15 @@ def get_cart_with_total(request, uuid):
     price_map = {d['id']: d['price'] for d in dishes}
 
     total = 0
+    quantity_map = {}
+
     for item in items:
         price = price_map.get(item["dish_id"], 0)
         total += price * item["quantity"]
+        quantity_map[item["dish_id"]] = item["quantity"]
 
     cart["total_price"] = total
+    cart["quantity_map"] = quantity_map
     return cart
 
 
@@ -368,45 +373,51 @@ class TableMenuView(View):
         return render(request, self.template_name, context)
 
 
-class AddToCartView(View):
-    def post(self, request: HttpRequest, uuid, dish_id):
+class UpdateCartView(View):
+    def post(self, request, uuid, dish_id, action):
         table = get_object_or_404(RestaurantTable, uuid=uuid)
         dish = get_object_or_404(Dish, id=dish_id)
         cart = get_cart(request, uuid)
 
-        for item in cart["items"]:
-            if item["dish_id"] == dish.id:
-                item["quantity"] += 1
-                break
-        else:
-            cart["items"].append({"dish_id": dish.id, "quantity": 1})
+        found_item = next((item for item in cart["items"] if item["dish_id"] == dish.id), None)
+
+        if action == 'add':
+            if found_item:
+                found_item["quantity"] += 1
+            else:
+                cart["items"].append({"dish_id": dish.id, "quantity": 1})
+
+        elif action == 'decrease' and found_item:
+            if found_item["quantity"] > 1:
+                found_item["quantity"] -= 1
+            else:
+                cart["items"].remove(found_item)
 
         save_cart(request, uuid, cart)
 
         if 'HX-Request' in request.headers:
             cart_for_display = get_cart_with_total(request, uuid)
+
             context = {
                 "table": table,
                 "cart": cart_for_display,
                 "dish": dish,
             }
+
             dish_form_html = render_to_string(
                 'kitchen/partials/dish_form_fragment.html',
-                context,
-                request=request
+                context, request=request
             )
+
             cart_context = context.copy()
             cart_context['is_oob'] = True
-
             cart_btn_html = render_to_string(
                 'kitchen/partials/cart_button_fragment.html',
-                cart_context,
-                request=request
+                cart_context, request=request
             )
 
             return HttpResponse(dish_form_html + cart_btn_html)
 
-        messages.success(request, f"{dish.name} has been added to the cart.")
         return redirect(request.META.get("HTTP_REFERER", f"/table/{uuid}/menu/"))
 
 
