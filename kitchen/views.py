@@ -30,6 +30,28 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "kitchen/index.html", context)
 
 
+def get_cart_with_total(request, uuid):
+    cart = get_cart(request, uuid).copy()
+    items = cart.get("items", [])
+
+    if not items:
+        cart["total_price"] = 0
+        return cart
+
+    dish_ids = [item["dish_id"] for item in items]
+
+    dishes = Dish.objects.filter(id__in=dish_ids).values('id', 'price')
+    price_map = {d['id']: d['price'] for d in dishes}
+
+    total = 0
+    for item in items:
+        price = price_map.get(item["dish_id"], 0)
+        total += price * item["quantity"]
+
+    cart["total_price"] = total
+    return cart
+
+
 def get_cart_key(uuid):
     return f"cart_{uuid}"
 
@@ -330,7 +352,7 @@ class TableMenuView(View):
         else:
             dishes = Dish.objects.all().order_by("name")
 
-        cart = get_cart(request, uuid)
+        cart = get_cart_with_total(request, uuid)
 
         context = {
             "table": table,
@@ -362,9 +384,10 @@ class AddToCartView(View):
         save_cart(request, uuid, cart)
 
         if 'HX-Request' in request.headers:
+            cart_for_display = get_cart_with_total(request, uuid)
             context = {
                 "table": table,
-                "cart": cart,
+                "cart": cart_for_display,
                 "dish": dish,
             }
             dish_form_html = render_to_string(
