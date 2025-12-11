@@ -18,15 +18,6 @@
             <h3 class="mb-0">
               Menu for Table №{{ table.number }}
             </h3>
-            <div class="d-flex justify-content-end gap-2">
-
-              {% include "kitchen/partials/cart_button_fragment.html" %}
-
-              <a href="{% url 'kitchen:table-landing' uuid=table.uuid %}"
-                class="btn bg-gradient-secondary w-auto" style="float: right">
-                Back to Table
-              </a>
-            </div>
           </div>
 
           <div class="card-body p-4">

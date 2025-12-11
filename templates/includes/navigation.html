@@ -5,11 +5,17 @@
         <nav class="navbar navbar-expand-lg  blur blur-rounded top-0 z-index-fixed shadow position-absolute my-3 py-2 start-0 end-0 mx-4">
           <div class="container-fluid">
 
-            <a href="{% url 'kitchen:index' %}" class="btn btn-sm bg-gradient-primary btn-round mb-0 me-1 mt-2 mt-md-0">
-                Restaurant Kitchen Service
+            <a href="{% url 'kitchen:index' %}" class="btn btn-sm bg-gradient-primary btn-round mb-0 px-3">
+                RKS
             </a>
 
-            <button class="navbar-toggler shadow-none ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
+            {% if table %}
+              <div class="d-flex d-lg-none align-items-center ms-auto gap-2 me-2">
+                {% include "kitchen/partials/navbar_buttons.html" %}
+              </div>
+            {% endif %}
+
+            <button class="navbar-toggler shadow-none ms-0" type="button" data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon mt-2">
                 <span class="navbar-toggler-bar bar1"></span>
                 <span class="navbar-toggler-bar bar2"></span>
@@ -18,7 +24,7 @@
             </button>
             <div class="collapse navbar-collapse pt-3 pb-2 py-lg-0" id="navigation">
 
-              <ul class="navbar-nav navbar-nav-hover ms-lg-8 ps-lg-5 w-100">
+              <ul class="navbar-nav navbar-nav-hover ms-lg-4 w-100">
 
                 <li class="nav-item dropdown dropdown-hover mx-2">
                   <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center" aria-expanded="false" href="{% url 'kitchen:dish-type-list' %}">
@@ -113,6 +119,14 @@
                     </div>
                   </ul>
                 </li>
+
+                {% if table %}
+                  <li class="nav-item d-none d-lg-flex align-items-center mx-lg-auto gap-2">
+                    {% include "kitchen/partials/navbar_buttons.html" %}
+                  </li>
+                {% else %}
+                  <li class="nav-item mx-lg-auto"></li>
+                {% endif %}
 
                 <li class="nav-item ms-lg-auto">
                   <form method="post" action="{% url 'logout' %}">
