@@ -20,12 +20,17 @@
           <div class="card border-radius-xl overflow-hidden shadow-lg">
             <div class="card-header border-0">
               <h3 class="mb-0">Username: {{ cook.username }}
-                <a href="{% url 'kitchen:cook-delete' pk=cook.id %}" class="btn bg-gradient-danger w-auto me-2">
-                  Delete
-                </a>
-                <a href="{% url 'kitchen:cook-update' pk=cook.id %}" class="btn bg-gradient-secondary w-auto me-2">
-                  Update years of experience
-                </a>
+
+                {# Show buttons create only for admins (is_staff) or staff role #}
+                {% if user.is_staff or user.role == 'staff' %}
+                  <a href="{% url 'kitchen:cook-delete' pk=cook.id %}" class="btn bg-gradient-danger w-auto me-2">
+                    Delete
+                  </a>
+                  <a href="{% url 'kitchen:cook-update' pk=cook.id %}" class="btn bg-gradient-secondary w-auto me-2">
+                    Update years of experience
+                  </a>
+                {% endif %}
+
               </h3>
             </div>
 

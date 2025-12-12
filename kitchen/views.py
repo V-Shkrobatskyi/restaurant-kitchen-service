@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
@@ -12,6 +11,7 @@ from decimal import Decimal
 from kitchen.forms import CookCreationForm, CookExperienceUpdateForm, DishForm, CookSearchForm, DishSearchForm, \
     DishTypeSearchForm, RestaurantTableForm
 from kitchen.models import DishType, Dish, Cook, RestaurantTable, Order, OrderItem
+from kitchen.permissions import IsCookOrStaff, IsStaffOrAdmin
 
 
 @login_required
@@ -79,7 +79,7 @@ def clear_cart(request, uuid):
         request.session.modified = True
 
 
-class DishTypeListView(LoginRequiredMixin, generic.ListView):
+class DishTypeListView(IsCookOrStaff, generic.ListView):
     model = DishType
     template_name = "kitchen/dish_type_list.html"
     context_object_name = "dish_type_list"
@@ -101,7 +101,7 @@ class DishTypeListView(LoginRequiredMixin, generic.ListView):
         return queryset
 
 
-class DishTypeCreateView(LoginRequiredMixin, generic.CreateView):
+class DishTypeCreateView(IsCookOrStaff, generic.CreateView):
     model = DishType
     fields = "__all__"
     success_url = reverse_lazy("kitchen:dish-type-list")
@@ -129,7 +129,7 @@ class DishTypeCreateView(LoginRequiredMixin, generic.CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DishTypeUpdateView(LoginRequiredMixin, generic.UpdateView):
+class DishTypeUpdateView(IsCookOrStaff, generic.UpdateView):
     model = DishType
     fields = "__all__"
     success_url = reverse_lazy("kitchen:dish-type-list")
@@ -157,7 +157,7 @@ class DishTypeUpdateView(LoginRequiredMixin, generic.UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DishTypeDeleteView(LoginRequiredMixin, generic.DeleteView):
+class DishTypeDeleteView(IsCookOrStaff, generic.DeleteView):
     model = DishType
     success_url = reverse_lazy("kitchen:dish-type-list")
     template_name = "kitchen/dish_type_confirm_delete.html"
@@ -178,7 +178,7 @@ class DishTypeDeleteView(LoginRequiredMixin, generic.DeleteView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class CookListView(LoginRequiredMixin, generic.ListView):
+class CookListView(IsCookOrStaff, generic.ListView):
     model = Cook
     paginate_by = 5
 
@@ -200,11 +200,11 @@ class CookListView(LoginRequiredMixin, generic.ListView):
         return queryset
 
 
-class CookDetailView(LoginRequiredMixin, generic.DetailView):
+class CookDetailView(IsCookOrStaff, generic.DetailView):
     model = Cook
 
 
-class CookCreateView(LoginRequiredMixin, generic.CreateView):
+class CookCreateView(IsStaffOrAdmin, generic.CreateView):
     model = Cook
     form_class = CookCreationForm
 
@@ -214,18 +214,18 @@ class CookCreateView(LoginRequiredMixin, generic.CreateView):
         return kwargs
 
 
-class CookExperienceUpdateView(LoginRequiredMixin, generic.UpdateView):
+class CookExperienceUpdateView(IsCookOrStaff, generic.UpdateView):
     model = Cook
     form_class = CookExperienceUpdateForm
     success_url = reverse_lazy("kitchen:cook-list")
 
 
-class CookDeleteView(LoginRequiredMixin, generic.DeleteView):
+class CookDeleteView(IsStaffOrAdmin, generic.DeleteView):
     model = Cook
     success_url = reverse_lazy("kitchen:cook-list")
 
 
-class DishListView(LoginRequiredMixin, generic.ListView):
+class DishListView(IsCookOrStaff, generic.ListView):
     model = Dish
     paginate_by = 5
 
@@ -245,28 +245,28 @@ class DishListView(LoginRequiredMixin, generic.ListView):
         return queryset
 
 
-class DishDetailView(LoginRequiredMixin, generic.DetailView):
+class DishDetailView(IsCookOrStaff, generic.DetailView):
     model = Dish
 
 
-class DishCreateView(LoginRequiredMixin, generic.CreateView):
-    model = Dish
-    form_class = DishForm
-    success_url = reverse_lazy("kitchen:dish-list")
-
-
-class DishUpdateView(LoginRequiredMixin, generic.UpdateView):
+class DishCreateView(IsCookOrStaff, generic.CreateView):
     model = Dish
     form_class = DishForm
     success_url = reverse_lazy("kitchen:dish-list")
 
 
-class DishDeleteView(LoginRequiredMixin, generic.DeleteView):
+class DishUpdateView(IsCookOrStaff, generic.UpdateView):
+    model = Dish
+    form_class = DishForm
+    success_url = reverse_lazy("kitchen:dish-list")
+
+
+class DishDeleteView(IsCookOrStaff, generic.DeleteView):
     model = Dish
     success_url = reverse_lazy("kitchen:dish-list")
 
 
-class DishAssignView(LoginRequiredMixin, View):
+class DishAssignView(IsCookOrStaff, View):
     model = Dish
 
     def post(self, request, pk):
@@ -279,8 +279,8 @@ class DishAssignView(LoginRequiredMixin, View):
         return HttpResponseRedirect(reverse("kitchen:dish-detail", args=[pk]))
 
 
-class RestaurantTableListView(LoginRequiredMixin, View):
-    template_name = "kitchen/restauranttable_list.html"
+class RestaurantTableListView(IsStaffOrAdmin, View):
+    template_name = "kitchen/table_list.html"
 
     def get(self, request):
         if not request.user.is_staff:
@@ -302,10 +302,10 @@ class RestaurantTableListView(LoginRequiredMixin, View):
         })
 
 
-class RestaurantTableCreateView(LoginRequiredMixin, generic.CreateView):
+class RestaurantTableCreateView(IsStaffOrAdmin, generic.CreateView):
     model = RestaurantTable
     form_class = RestaurantTableForm
-    template_name = "kitchen/restauranttable_form.html"
+    template_name = "kitchen/table_form.html"
     success_url = reverse_lazy("kitchen:table-list")
 
     def dispatch(self, request, *args, **kwargs):

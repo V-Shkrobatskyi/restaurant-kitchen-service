@@ -21,7 +21,12 @@
       <div class="card border-radius-xl overflow-hidden shadow-lg">
         <div class="card-header border-0">
           <h3 class="mb-0">Cook List
-            <a href="{% url 'kitchen:cook-create' %}" style="float: right" class="btn bg-gradient-success w-auto me-2">Create</a>
+
+            {# Show button create only for admins (is_staff) or staff role #}
+            {% if user.is_staff or user.role == 'staff' %}
+              <a href="{% url 'kitchen:cook-create' %}" style="float: right" class="btn bg-gradient-success w-auto me-2">Create</a>
+            {% endif %}
+
           </h3>
         </div>
 
