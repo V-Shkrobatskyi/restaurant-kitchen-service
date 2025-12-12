@@ -78,7 +78,7 @@ class RestaurantTable(models.Model):
         return f"Table {self.number} ({self.uuid})"
 
     def get_absolute_url(self):
-        return reverse('kitchen:table-landing', kwargs={'uuid': str(self.uuid)})
+        return reverse('kitchen:table-menu', kwargs={'uuid': str(self.uuid)})
 
     def save(self, *args, **kwargs):
         # Ensure uuid exists before generating QR
