@@ -23,7 +23,7 @@
                 <span class="d-none d-md-inline">Restaurant Kitchen Service</span>
             </a>
 
-            {% if table %}
+            {% if table and not user.is_authenticated %}
               <div class="d-flex d-lg-none align-items-center ms-auto gap-2 me-2">
                 {% include "kitchen/partials/navbar_buttons.html" %}
               </div>
@@ -135,7 +135,7 @@
                   </li>
                 {% endif %}
 
-                {% if table %}
+                {% if table and not user.is_authenticated %}
                   <li class="nav-item d-none d-lg-flex align-items-center mx-lg-auto gap-2">
                     {% include "kitchen/partials/navbar_buttons.html" %}
                   </li>
