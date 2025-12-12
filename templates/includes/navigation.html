@@ -56,6 +56,14 @@
                     </a>
                   </li>
 
+                  {% if user.is_staff or user.role == 'staff' %}
+                    <li class="nav-item dropdown dropdown-hover mx-2">
+                      <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center" aria-expanded="false" href="{% url 'kitchen:table-list' %}">
+                        Tables
+                      </a>
+                    </li>
+                  {% endif %}
+
                   <li class="nav-item dropdown dropdown-hover mx-2">
                     <a class="nav-link ps-2 d-flex justify-content-between cursor-pointer align-items-center" id="dropdownMenuBlocks" data-bs-toggle="dropdown" aria-expanded="false">
                       Pages

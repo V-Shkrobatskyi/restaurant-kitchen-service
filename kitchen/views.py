@@ -283,9 +283,6 @@ class RestaurantTableListView(IsStaffOrAdmin, View):
     template_name = "kitchen/table_list.html"
 
     def get(self, request):
-        if not request.user.is_staff:
-            return redirect("/")
-
         tables = RestaurantTable.objects.all().order_by("number")
 
         # Add active orders
